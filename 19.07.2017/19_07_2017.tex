@@ -1,0 +1,150 @@
+\documentclass[10pt]{beamer}
+\usepackage[cp1251]{inputenc}
+%\usepackage[english]{babel}
+\usepackage[russian]{babel}
+\usepackage{amsmath,mathrsfs,mathtext}
+\usepackage{graphicx, epsfig}
+\usepackage{array}
+\usepackage{cmap}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shadows,arrows,trees,shapes,fit}
+\usepackage{xcolor}
+\usepackage[noend]{algorithmic}
+\usetikzlibrary{calc,intersections}
+%\usetheme{Goettingen}
+\usetheme{Rochester}
+\usecolortheme{sidebartab}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+
+\newcommand\undermat[2]{%
+  \makebox[0pt][l]{$\smash{\underbrace{\phantom{%
+    \begin{matrix}#2\end{matrix}}}_{\text{$#1$}}}$}#2}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+
+\definecolor{beamer@blendedblue}{RGB}{100, 130, 255}
+
+
+ \addtocounter{framenumber}{-1}
+ \setbeamertemplate
+ {footline}{\quad\hfill\insertframenumber/\inserttotalframenumber\strut\quad} 
+
+
+%----------------------------------------------------------------------------------------------------------
+
+\title{Importance Sampling}
+\author{Alena Shilova}
+\date{June 05,2017}
+\institute{Skoltech}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Normal distribution}
+
+For the normal distribution $\mathcal{N} (\mu, \Sigma)$ to look like the one from exponential family, let's make a change of variables: $S = \Sigma^{-1}$ and $m = \Sigma^{-1} \mu$. Then the density of distribution will look like the following:
+
+\[
+g_{m,S}(x) = \frac1{2\pi} \exp \Bigl( m^T x - \frac 12 \tr( Sxx^T ) \Bigr) \exp \Bigl(- \frac 1 2 \bigl( m^TS^{-1}m - \log |S| \bigr) \Bigr).
+\]
+
+So in this case $A(m, S) = \frac 12 m^TS^{-1} m - \frac 12 \log |S|$, $T(x) = (x, -\frac 12 xx^T)$ and $h(x) = \frac 1{2\pi}$
+
+\end{frame}
+
+\begin{frame}{Strong convexity}
+
+It is a well-known fact that if $f(x)$ is strong convex with a coefficient $\beta$, then $e^{f(x)}$ is a strongly convex function on some compact and if $x \in [-C, C]$ for some $C > 0$, then the coefficient of strong convexity is equal to $\beta e^{-C}$. In our case if $\lambda(\Sigma) \in [\lambda_{min}, \lambda_{max}]$, then
+\begin{align*}
+    \frac 12 x^T Sx - m^Tx + \frac 12 m^TS^{-1}m - \frac 12 \log|S| \geq -\frac 12 \log |S| \geq \frac n2 \log \lambda_{min}
+\end{align*}
+
+Therefore, $\alpha = \lambda_{min}^{\frac n2}$. Now we need to find $\beta$.
+
+\end{frame}
+
+\begin{frame}{Strong convexity}
+It is quite obvious that $\frac 12 x^T Sx - m^Tx$ is convex w.r.t. distribution parameters $m, S$. One can easily check the convexity of $f(x) = \frac 12 m^TS^{-1}m$ using the following criterion:
+\[
+\langle \nabla f(x) - \nabla f(y), x-y \rangle \geq 0
+\]
+
+Indeed, here $\nabla f(x) = (S^{-1}m, - \frac 12 S^{-1} mm^TS^{-1})$, so 
+\begin{align*}
+&\frac 12 \tr \biggl( \Bigl( S_1^{-1} m_1m_1^TS_1^{-1} - S_2^{-1}m_2m_2^TS_2^{-1}\Bigr)^T\Bigl( S_2 -S_1 \Bigr) \biggr) + \\ 
++ &\Bigl( S_1^{-1} m_1 - S_2^{-1} m_2\Bigr)^T \Bigl( m_1-m_2 \Bigr)  = \frac 12 (x_1 - x_2)^T(S_1 + S_2)(x_1-x_2) > 0
+\end{align*}
+where $x_i = S_i^{-1}m_i$ and last inequality holds due to $S_i$ is positive-definite for any $i \in \{1,2\}$ 
+ 
+\end{frame}
+
+\begin{frame}{Strong convexity}
+Let's prove the strong convexity of the function $f(S) = - \frac 12 \log |S|$.
+
+\begin{block}{Theorem (about strong/smooth duality)}
+$f(S)$ is $\beta$-strongly convex w.r.t. a norm $\| \cdot \|$ if and only if $f^*$ is $\frac 1{\beta}$-strongly smooth w.r.t. the dual norm $\|\cdot\|_*$
+
+\end{block}
+
+The dual function is $f^*(S) = -2n + \frac 12 \ln 2 - \frac 12 \sum_{i=1}^n \ln|\lambda_i(S)|$, where S is a negative-definite matrix with eigenvalues lying in the interval $\left[ -\frac{\lambda_{max}}{2}, -\frac{\lambda_{min}}{2}\right]$, i.e. has only negative eigenvalues. $\lambda_{max}$ and $\lambda_{min}$ are respectively maximal and minimal eigenvalues of the covariance matrix of the considered normal distribution.
+
+To  prove its strong smoothness, I'm going to use lemma of Juditsky and Nemirovski (2008).
+
+\end{frame}
+
+\begin{frame}{Juditsky and Nemirovski}
+
+\begin{block}{Lemma}
+
+Let $\delta$ be an
+open interval. Suppose $\phi : \delta \rightarrow \mathbb{R}_*$
+is a twice differentiable convex function such that $\phi''$
+is monotonically non-decreasing. Let $\mathbb{S}_n(\delta)$ be the set of all symmetric $n \times n$
+matrices with eigenvalues in $\delta$. Define the function $F : \mathbb{S}_n(\delta) → \mathbb{R}_*$
+\[
+F(X) = \sum^n_{i=1} \phi (\lambda_i(X))
+\]
+and let
+\[
+f(t) = F(X + tH)
+\]
+for some $X \in \mathbb{S}_n (\delta)$, $H \in \mathbb{S}_n$. Then, we have,
+\[
+f''(0) \leq 2 \sum^n_{i=1} \phi'' (\lambda_i(X))\lambda_i^2(H)
+\]
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Strong convexity}
+Let's use this Lemma and consider $f(t) = \frac 12 \ln 2 - 2n - \frac 12 \sum_{i=1}^n \ln |\lambda_i(X+tH)|$ for some fixed $X,H$. Applying lemma on it:
+\[
+f''(0) \leq 2\sum_{i=1}^n \frac{\lambda_i^2(H)}{2\lambda_i^2(X)} \leq \frac 4{\lambda_{min}^2}\sum_{i=1}^n \lambda_i^2(H) = \frac 4{\lambda_{min}^2} \|H\|^2_F
+\]
+
+It means that f(S) is $\frac{\lambda_{min}^2}{4}-$strong convex.
+
+Finally, $g(m,S)$ is $\frac{\lambda_{min}^{\frac n2 +2}}4 - $strong convex
+
+\end{frame}
+
+\begin{frame}{Closing remark}
+
+If we have a proper $\alpha(x)$ (here $\alpha(x) = \frac 14 \lambda_{min}^{\frac n2 + 2}$) and a set $\mathbf{\Theta}$, then for all $\theta_1, \theta_2 \in \mathbf{\Theta}$ we will have:
+\begin{align*}
+&\int \exp(A(t(\theta_1) + (1-t)\theta_2) - (t\theta_1 + (1-t)\theta_2)^TT(x))f^2(x)\phi^2(x)h(x)\, d x  \leq\\
+\leq &t \int \exp(A(\theta_1) - \theta_1^TT(x))f^2(x)\phi^2(x)h(x)\, d x +\\
++&(1-t) \int \exp(A(\theta_2) - \theta_2^TT(x))f^2(x)\phi^2(x)h(x)\, d x -\\
+-&t(1-t) \frac{\lambda_{min}^{\frac n2 + 2}}{8\pi} \int f^2(x)\phi^2(x)\, dx \|\theta_1 - \theta_2\|^2_2
+\end{align*}
+
+The coefficient will depend on the value of $\int \limits_{\mathbb{R}^n} f^2(x)\phi^2(x)\, dx$, but we can also take $\alpha(x) = \frac 14 \lambda_{min}^{\frac n2 + 2} \mathbb{I}(x \in X)$ for some $X$ and then it is enough to know the value $\int \limits_X f^2(x)\phi^2(x)\, dx$
+
+\end{frame}
+
+
+
+
+\end{document}
