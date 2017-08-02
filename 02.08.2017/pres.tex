@@ -1,0 +1,116 @@
+\documentclass[10pt]{beamer}
+\usepackage[cp1251]{inputenc}
+%\usepackage[english]{babel}
+\usepackage[russian]{babel}
+\usepackage{amsmath,mathrsfs,mathtext}
+\usepackage{graphicx, epsfig}
+\usepackage{array}
+\usepackage{cmap}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shadows,arrows,trees,shapes,fit}
+\usepackage{xcolor}
+\usepackage[noend]{algorithmic}
+\usetikzlibrary{calc,intersections}
+\usetheme{Darmstadt}
+%\usetheme{Goettingen}
+%\usetheme{Rochester}
+%\usetheme{Dresden}
+\usecolortheme{sidebartab}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+
+\newcommand\undermat[2]{%
+  \makebox[0pt][l]{$\smash{\underbrace{\phantom{%
+    \begin{matrix}#2\end{matrix}}}_{\text{$#1$}}}$}#2}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+
+\definecolor{beamer@blendedblue}{RGB}{100, 130, 255}
+
+
+ \addtocounter{framenumber}{-1}
+ \setbeamertemplate
+ {footline}{\quad\hfill\insertframenumber/\inserttotalframenumber\strut\quad} 
+
+
+%----------------------------------------------------------------------------------------------------------
+
+\title{Importance Sampling. \\ Minimization of Renyi Divergence}
+\author{Alena Shilova}
+\date{August 02,2017}
+\institute{Skoltech}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Importance Sampling}
+
+The problem of approximating the expected value (or integral):
+\[
+I = \mathbb{E}\varphi(X) =\int \varphi(x)f(x) \, dx,
+\]
+where $X \sim f$ is a random variable on $\mathbb{R}^k$ and $\varphi : \mathbb{R}^k \rightarrow \mathbb{R}$.
+
+\begin{block}{IS estimator}
+
+Sampling (importance) distribution $\tilde f$ satisfying $\tilde f(x) > 0$ whenever $ \varphi(x)f(x) \neq 0$, take IID samples $X_1,X_2, \dots,X_n \sim \tilde f$ (as opposed to sampling from $f$, the
+nominal distribution) and use
+\[
+\hat I^{IS}_n = \frac 1n \sum^n_{i=1} \varphi(X_i) \frac{f(X_i)}{\tilde f(X_i)}.
+\]
+\end{block}
+\end{frame}
+
+\begin{frame}{Exponential family}
+
+From now on, one is going to use the family of exponential distributions and instead of $\tilde f(x)$, there will be 
+\[
+f_{\theta}(x) = \exp(\theta^TT(x) - A(\theta))h(x),
+\]
+where $A : \mathbb{R}^p \rightarrow \mathbb{R} \cup \infty$, defined as
+\[
+A(\theta) = \log \int \exp(\theta^T T(x))h(x) \, dx,
+\]
+serves as a normalizing factor.
+
+\end{frame}
+
+\begin{frame}{R\'enyi divergence. Definition}
+
+
+R\'enyi generalized divergence:
+\[
+D_{\alpha}(g; f) = \begin{cases} \int \ln \frac{g(x)}{f(x)} g(x) \, dx  & \alpha = 1 \\
+\frac1{\alpha - 1}  \ln \left(\int \left[ \frac{g(x)}{f(x)} \right]^{\alpha -1} g(x) \, dx \right) &  \alpha > 0; \alpha \neq 1
+\end{cases}
+\]
+
+Further let's consider the case of minimizing the divergence with $\alpha = 1$, which is equivalent to
+\[
+\max_{\theta} \int g(x) \ln f_{\theta}(x) \, dx
+\]
+
+\end{frame}
+
+\begin{frame}{Optimization problem}
+
+In our case we have the following optimization problem:
+
+\[
+\max_{\theta \in \Theta} \frac 1I \int  \varphi(x) f(x) \left[ \theta^T T(x) - A(\theta) \right] \ln h(x) \, dx
+\]
+
+It's concave as $A(\theta)$ is a convex function.
+
+The first derivative: %order condition of optimality:
+\begin{align*}
+&\int \left[ T(x) - \nabla A(\theta) \right] \varphi(x)f(x)\ln h(x) \, dx = \\
+ = & \mathbb{E}_{X \sim f_{\theta}} \left[ (T(x) - A(\theta))\frac{\varphi(x) f(x) \ln h(x)}{f_{\theta}(x)} \right] 
+\end{align*}
+
+
+\end{frame}
+
+
+\end{document}
