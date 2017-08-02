@@ -1,0 +1,137 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsmath,mathrsfs,mathtext}
+\usepackage{graphicx}
+\DeclareMathOperator{\trace}{Tr}
+%\DeclareMathOperator{\dim}{dim}
+\DeclareMathOperator{\rank}{rank}
+%\DeclareMathOperator{\det}{det}
+
+\title{Importance Sampling. \\
+The research of optimization problems}
+\author{Alena Shilova}
+\date{August 2017}
+
+\begin{document}
+
+\maketitle
+
+\section*{Strong convexity}
+
+\subsection*{Introduction}
+
+Let's consider the problem of estimating the value of the following integral:
+\[
+I = \mathbb{E}\varphi(X) =\int \varphi(x)f(x) \, dx,
+\]
+where $X \sim f$ is a random variable on $\mathbb{R}^k$ and $\varphi : \mathbb{R}^k \rightarrow \mathbb{R}$. 
+
+It can be used the traditional Monte-Carlo estimator to approximate this value, but it may demand a large amount of points to generate to get a relatively close value to one we want. That's why one can use importance sampling estimator instead. 
+
+To apply it, firstly, it is necessary to choose a sampling (importance) distribution $\tilde f$ satisfying $\tilde f(x) > 0$ whenever $ \varphi(x)f(x) \neq 0$, take IID samples $X_1,X_2, \dots,X_n \sim \tilde f$ (as opposed to sampling from $f$, the
+nominal distribution) and use
+\[
+\hat I^{IS}_n = \frac 1n \sum^n_{i=1} \varphi(X_i) \frac{f(X_i)}{\tilde f(X_i)}.
+\]
+
+For simplicity further we are going to consider the distributions from the exponential family of distributions $\mathcal{F}$. Define $T : \mathbb{R}^k \rightarrow \mathbb{R}^p$ and $h : \mathbb{R}^k \rightarrow \mathbb{R}^+$. Then our density function is
+\[
+f_{\theta}(x) = \exp \left[\theta^T T(x) - A(\theta)\right] h(x),
+\]
+where $A : \mathbb{R}^p \rightarrow \mathbb{R} \cup {\infty}$, defined as
+\[
+A(\theta) = \log \int \exp(\theta^TT(x))h(x)\, dx,
+\]
+serves as a normalizing factor. (When $A(\theta) = \infty$, we define $f_{\theta} = 0$ and remember that this does not define a distribution.) Finally, let $\Theta \subseteq \mathbb{R}^p$ be a convex set, and our exponential family is $\mathcal{F} = \bigl\{f_{\theta} \bigm| \theta \in  \Theta\bigr\}$, where $\theta$ is called the natural parameter of $\mathcal{F}$. Note that the
+choice of $T$, $h$, and $\Theta$ fully specifies our family $\mathcal{F}$. 
+
+In order to find the optimal distribution for the importance sampling estimator, in the beginning, we will try to minimize the variance of the estimator:
+\[
+\min_{\theta \in \Theta} V(\theta) = \min_{\theta \in \Theta} \int \frac{\varphi^2(x)f^2(x)}{f_{\theta}(x)} \, dx - I^2. 
+\]
+
+As it was proved in \cite{boyd}, the problem will be convex if the exponential family of distributions is considered. Now it is interesting to know under which circumstances the function to minimize will be strongly convex and with which constant.
+
+Let's narrow our problem one more time and now consider only the family of normal distributions  $\mathcal{N} (\mu, \Sigma)$ with parameters $(\mu, \Sigma)$ and the eigenvalues of the covariance matrix $\Sigma$ lie within some compact $[\lambda_{min}, \lambda_{max}]$. Its density function looks like the following:
+\[
+f_{m,S}(x)= \frac{1}{\sqrt { (2\pi)^k| \Sigma| } }  \exp\left(-{1 \over 2} (x-\mu)^{\rm T} \Sigma^{-1} ( x-\mu)\right).
+\]
+These distributions can be represented as ones from the exponential family by performing change of variables: $S = \Sigma^{-1}$ and $m = \Sigma^{-1} \mu$. Then the density of distribution will look like the following:
+\[
+g_{m,S}(x) = \frac1{\sqrt{(2\pi)^n}} \exp \Bigl( m^T x - \frac 12 \trace( Sxx^T ) \Bigr) \exp \Bigl(- \frac 1 2 \bigl( m^TS^{-1}m - \log |S| \bigr) \Bigr)
+\]
+and in this case $A(m, S) = \frac 12 m^TS^{-1} m - \frac 12 \log |S|$, $T(x) = (x, -\frac 12 xx^T)$ and $h(x) = \frac 1{\sqrt{(2\pi)^n}}$.
+
+\subsection*{Study of optimisation problem}
+
+Having our problem formulated, let's find out whether the objective function is strongly convex.
+
+To start with, let's have a closer look on a function 
+\[
+\frac1{f_{\theta}(x)} = \sqrt{(2\pi)^n} \exp\left( \frac12 \trace(Sxx^T) - m^Tx + \frac 12 \trace (S^{-1}mm^T) - \frac12 \log |S|\right).
+\]
+It is an exponential function and there is a fact that if some arbitrary function $f(x)$ is strongly convex with a coefficient $\beta$, then $e^{f(x)}$ is a strongly convex function on some compact and if $x \in [-C, C]$ for some $C > 0$, then the coefficient of strong convexity is equal to $\beta e^{-C}$. Indeed, as we deal with the twice continuously differentiable functions, then
+\[
+\nabla^2 e^{f(x)} = e^{f(x)}\left((\nabla f(x))^T(\nabla f(x)) + \nabla^2 f(x)\right) \succeq e^{-C}(0 + \beta)I
+\]
+
+In our case as $\lambda(\Sigma) \in [\lambda_{min}, \lambda_{max}]$, then
+\begin{align*}
+    \frac 12 x^T Sx - m^Tx + \frac 12 m^TS^{-1}m - \frac 12 \log|S| \geq -\frac 12 \log |S| \geq \frac n2 \log \lambda_{min}
+\end{align*}
+
+Therefore, $e^{-C} = \lambda_{min}^{\frac n2}$. Now we need to find $\beta$.
+
+It is quite obvious that $\frac 12 x^T Sx - m^Tx$ is convex w.r.t. distribution parameters $m, S$. One can easily check the convexity of $f(x) = \frac 12 m^TS^{-1}m$ using the following criterion:
+\[
+\langle \nabla f(x) - \nabla f(y), x-y \rangle \geq 0
+\]
+
+Indeed, here $\nabla f(x) = (S^{-1}m, - \frac 12 S^{-1} mm^TS^{-1})$, so 
+\begin{align*}
+&\frac 12 \trace\biggl( \Bigl( S_1^{-1} m_1m_1^TS_1^{-1} - S_2^{-1}m_2m_2^TS_2^{-1}\Bigr)^T\Bigl( S_2 -S_1 \Bigr) \biggr) + \\ 
++ &\Bigl( S_1^{-1} m_1 - S_2^{-1} m_2\Bigr)^T \Bigl( m_1-m_2 \Bigr)  = \frac 12 (x_1 - x_2)^T(S_1 + S_2)(x_1-x_2) > 0
+\end{align*}
+where $x_i = S_i^{-1}m_i$ and last inequality holds due to $S_i$ is positive-definite for any $i \in \{1,2\}$ 
+ 
+Let's prove the strong convexity of the function $f(S) = - \frac 12 \log |S|$, using the criterion:
+\[
+\langle \nabla f(x) - \nabla f(y), x-y \rangle \geq \beta \|x-y \|^2
+\]
+
+Here, as $\nabla f(S) = - \frac 12 S^{-1}$, then
+\begin{align*}
+&\frac12 \trace ((S_1^{-1}- S_2^{-1})^T(S_2 - S_1)) = \frac 12 (S_1^{-1}(S_2-S_1)^TS_2^{-1}(S_2 -S_1)) \geq \\
+\geq & \frac{\lambda_{min}^2}{2}\trace((S_2 - S_1)^T(S_2-S_1)).
+\end{align*}
+In the latter expression we again used the fact $\lambda(S_i^{-1}) = \lambda(\Sigma_i) \in \left[\lambda_{min}, \lambda_{max} \right]$.
+
+Thus, we have found $\beta = \frac{\lambda_{min}^2}{2}$
+as well. Finally, the coefficient of strong convexity of the function $\frac1{f_{\theta}(x)}$ is $\alpha= \beta e^{-C}= \frac{\lambda_{min}^{\frac{n}{2} + 2}}{2}$.
+
+Let's return to our initial objective function $V(\theta)$, where $\theta = (m,S)$. If we have a proper $\alpha(x)$ (now we will take $\alpha(x) = \alpha = \frac{\lambda_{min}^{\frac{n}{2} +2}}{2}$) and a set $\Theta$, then for all $\theta_1, \theta_2 \in \Theta$ we will have:
+\begin{align*}
+&\int \exp(A(t(\theta_1) + (1-t)\theta_2) - (t\theta_1 + (1-t)\theta_2)^TT(x))f^2(x)\phi^2(x)h(x)\, d x  \leq\\
+\leq &t \int \exp(A(\theta_1) - \theta_1^TT(x))f^2(x)\phi^2(x)h(x)\, d x +\\
++&(1-t) \int \exp(A(\theta_2) - \theta_2^TT(x))f^2(x)\phi^2(x)h(x)\, d x -\\
+-&t(1-t) \frac{\lambda_{min}^{\frac n2 + 2}}{2\sqrt{(2\pi)^n}} \int f^2(x)\phi^2(x)\, dx \|\theta_1 - \theta_2\|^2_2
+\end{align*}
+
+From this expression above it became clear that the coefficient of strong convexity for the objective function is equal to $ \frac{\lambda_{min}^{\frac n2 + 2}}{2\sqrt{(2\pi)^n}} \int f^2(x)\phi^2(x)\, dx$, that means that the coefficient depends on the value of $\int \limits_{\mathbb{R}^n} f^2(x)\phi^2(x)\, dx$. Although, it is worth mentioning that it is possible to take $\alpha(x) = \frac{\lambda_{min}^{\frac{n}{2} + 2}}{2} \mathbb{I}(x \in X)$ for some $X$ and then it is enough to know the value $\int \limits_X f^2(x)\phi^2(x)\, dx$.
+
+ 
+
+
+\section*{R\'enyi divergence}
+
+
+\newpage
+
+\bibliography{art} 
+
+
+\bibliographystyle{ieeetr}
+
+
+\end{document}
