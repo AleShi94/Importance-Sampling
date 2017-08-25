@@ -1,0 +1,129 @@
+\documentclass[10pt]{beamer}
+\usepackage[cp1251]{inputenc}
+%\usepackage[english]{babel}
+\usepackage[russian]{babel}
+\usepackage{amsmath,mathrsfs,mathtext}
+\usepackage{graphicx, epsfig}
+\usepackage{array}
+\usepackage{cmap}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shadows,arrows,trees,shapes,fit}
+\usepackage{xcolor}
+\usepackage[noend]{algorithmic}
+\usetikzlibrary{calc,intersections}
+\usetheme{Darmstadt}
+%\usetheme{Goettingen}
+%\usetheme{Rochester}
+%\usetheme{Dresden}
+\usecolortheme{sidebartab}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+
+\newcommand\undermat[2]{%
+  \makebox[0pt][l]{$\smash{\underbrace{\phantom{%
+    \begin{matrix}#2\end{matrix}}}_{\text{$#1$}}}$}#2}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+
+\definecolor{beamer@blendedblue}{RGB}{100, 130, 255}
+
+
+ \addtocounter{framenumber}{-1}
+ \setbeamertemplate
+ {footline}{\quad\hfill\insertframenumber/\inserttotalframenumber\strut\quad} 
+
+
+%----------------------------------------------------------------------------------------------------------
+
+\title{Importance Sampling. \\ Minimization of Renyi Divergence. \\
+Strong convexity investigation}
+\author{Alena Shilova}
+\date{August 22,2017}
+\institute{Skoltech}
+
+\begin{document}
+
+\maketitle
+
+
+\begin{frame}{Optimization problems}
+
+\begin{block}{Optimization problem with $\alpha  = 1$}
+\[
+\max_{\theta \in \Theta} \frac 1I \int  \varphi(x) f(x) \left[ \theta^T T(x) - A(\theta) \right] \ln h(x) \, dx
+\]
+\end{block}
+
+\begin{block}{Optimization problem with $\alpha = 2$}
+\[
+ \min_{\theta \in \Theta} \int \frac{\varphi^2(x)f^2(x)}{\exp(\theta^TT(x) - A(\theta))h(x)} \, dx. 
+\]
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Normal distribution}
+For the normal distribution $\mathcal{N} (\mu, \Sigma)$ to look like the one from exponential family, let's make a change of variables: $S = \Sigma^{-1}$ and $m = \Sigma^{-1} \mu$. Then the density of distribution will look like the following:
+
+\[
+g_{m,S}(x) = \frac1{2\pi} \exp \Bigl( m^T x - \frac 12 \tr( Sxx^T ) \Bigr) \exp \Bigl(- \frac 1 2 \bigl( m^TS^{-1}m - \log |S| \bigr) \Bigr).
+\]
+
+So in this case $A(m, S) = \frac 12 m^TS^{-1} m - \frac 12 \log |S|$, $T(x) = (x, -\frac 12 xx^T)$ and $h(x) = \frac 1{2\pi}$
+
+\end{frame}
+
+\begin{frame}{Strong convexity of the first problem}
+\begin{block}{Problem}
+\[
+\min_{m,S} \int \varphi(x)f(x)\left[\frac12 x^TSx - m^Tx + \frac12 m^T S^{-1}m - \frac 12 \log |S|  \right] \, dx
+\]
+\end{block}
+
+As it was shown earlier and exploiting the equivalency of the norms, this objective function is strongly convex:
+\begin{itemize}
+\item with the coefficient $\frac{\lambda_{min}^2}{2}$ in the norm $\|\cdot\|_2$;
+\item with the coefficient $\frac{\lambda_{min}^2}{2}$ in the norm $\|\cdot\|_{\infty}$;
+\item with the coefficient $\frac{\lambda_{min}^2}{2 \sqrt{n}}$ in the norm $\|\cdot\|_{1}$.
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Strong convexity of the second problem}
+\begin{block}{Problem}
+\[
+\min_{m,S} \int \varphi^2(x)f^2(x) \sqrt{(2\pi)^n} \exp \left[\frac12 x^TSx - m^Tx + \frac12 m^T S^{-1}m - \frac 12 \log |S|  \right] \, dx
+\]
+\end{block}
+
+$e^{f(x)}$ is strongly convex $\Leftrightarrow$ f(x) is strongly convex and $f(X) \subseteq [-C, + \infty]$.
+
+Indeed, for any $x$ and $y$
+\begin{align*}
+    &\langle e^{f(x)} \nabla f(x) - e^{f(y)} \nabla f(y), x-y \rangle \geq\\ 
+    \geq & e^{-C} \langle \nabla f(x) - \nabla f(y), x-y \rangle \geq \\
+    \geq & e^{-C} \beta \|x-y\|^2
+\end{align*}
+
+\end{frame}
+
+
+
+\begin{frame}{Strong convexity of the second problem}
+\begin{block}{Problem}
+\[
+\min_{m,S} \int \varphi^2(x)f^2(x) \sqrt{(2\pi)^n} \exp \left[\frac12 x^TSx - m^Tx + \frac12 m^T S^{-1}m - \frac 12 \log |S|  \right] \, dx
+\]
+\end{block}
+
+From the things mentioned earlier and exploiting the equivalency of the norms, this objective function is strongly convex:
+\begin{itemize}
+\item with the coefficient $\frac{\lambda_{min}^{\frac n2+ 2}}{2}$ in the norm $\|\cdot\|_2$;
+\item with the coefficient $\frac{\lambda_{min}^{\frac n2 + 2}}{2}$ in the norm $\|\cdot\|_{\infty}$;
+\item with the coefficient $\frac{\lambda_{min}^{\frac n2 + 2}}{2 \sqrt{n}}$ in the norm $\|\cdot\|_{1}$.
+
+\end{itemize}
+\end{frame}
+
+\end{document}
